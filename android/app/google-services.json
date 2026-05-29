@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "585446113699",
+    "project_id": "denona-4b33c",
+    "storage_bucket": "denona-4b33c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:585446113699:android:9082e7cc7ab9cf12d71a16",
+        "android_client_info": {
+          "package_name": "com.example.flutter_audio_coach"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "585446113699-sttuj7gejiitaqch8267kltuj7fu4clc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flutter_audio_coach",
+            "certificate_hash": "6fb299c61ad082f98a7cbee9a63712126d3ba5be"
+          }
+        },
+        {
+          "client_id": "585446113699-tig3aa9h3q0fduskpe479vqh5nrefh3k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD4i3CiLIlKcah1DyeJeagEgGO7zeBPsPY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "585446113699-htv61jrkrdv3a1ju5upa77qu619jaid0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -38,6 +38,9 @@ dependencies:
   firebase_auth: ^5.7.0
   google_sign_in: ^6.3.0
   sign_in_with_apple: ^7.0.1
+  shared_preferences: ^2.5.5
+  purchases_flutter: ^10.0.2
+  purchases_ui_flutter: ^10.0.2
 
 dev_dependencies:
   flutter_test:

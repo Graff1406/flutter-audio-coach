@@ -8,13 +8,22 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_audio_coach/main.dart';
+import 'package:flutter_audio_coach/subscription_service.dart';
 
 void main() {
   testWidgets('Shows firebase setup hint when firebase is unavailable', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MyApp(firebaseReady: false));
+    final languageController = LanguageController();
+    final subscriptionService = SubscriptionService();
+    await tester.pumpWidget(
+      MyApp(
+        firebaseReady: false,
+        languageController: languageController,
+        subscriptionService: subscriptionService,
+      ),
+    );
 
-    expect(find.text('Firebase не настроен'), findsOneWidget);
+    expect(find.text('Firebase is not configured'), findsOneWidget);
   });
 }

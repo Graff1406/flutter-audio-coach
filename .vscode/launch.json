@@ -2,6 +2,20 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Flutter Android Emulator",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "emulator-5554"
+    },
+    {
+      "name": "Flutter Chrome",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "chrome"
+    },
+    {
       "name": "Web localhost:5050",
       "request": "launch",
       "type": "dart",
@@ -12,7 +26,7 @@
         "--web-port",
         "5050",
         "--web-hostname",
-        "0.0.0.0",
+        "localhost",
         "--no-web-resources-cdn"
       ]
     }
