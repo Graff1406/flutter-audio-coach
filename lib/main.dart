@@ -24,9 +24,7 @@ class LanguageController extends ChangeNotifier {
   AppStrings get strings => AppStrings(_language);
 
   Future<void> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final code = prefs.getString(_storageKey);
-    _language = code == AppLanguage.ru.name ? AppLanguage.ru : AppLanguage.en;
+    _language = AppLanguage.en;
   }
 
   Future<void> setLanguage(AppLanguage language) async {
@@ -278,8 +276,8 @@ class AuthGate extends StatelessWidget {
   }
 }
 
-class _LanguageSwitcher extends StatelessWidget {
-  const _LanguageSwitcher({required this.controller});
+class LanguageSwitcher extends StatelessWidget {
+  const LanguageSwitcher({super.key, required this.controller});
 
   final LanguageController controller;
 
@@ -329,10 +327,14 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
+  static const _autoSlideInterval = Duration(seconds: 5);
+  static const _autoSlideAnimationDuration = Duration(milliseconds: 600);
+
   bool _loading = false;
   bool _showOtherSignInMethods = false;
   String? _error;
   final PageController _pageController = PageController();
+  Timer? _autoSlideTimer;
   int _currentPage = 0;
 
   List<_OnboardingSlide> _slides(AppStrings strings) {
@@ -356,9 +358,44 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _scheduleAutoSlide();
+  }
+
+  @override
   void dispose() {
+    _autoSlideTimer?.cancel();
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _scheduleAutoSlide() {
+    _autoSlideTimer?.cancel();
+    _autoSlideTimer = Timer(_autoSlideInterval, _advanceSlide);
+  }
+
+  Future<void> _advanceSlide() async {
+    if (!mounted) {
+      return;
+    }
+
+    if (!_pageController.hasClients) {
+      _scheduleAutoSlide();
+      return;
+    }
+
+    final slideCount = _slides(widget.languageController.strings).length;
+    final nextPage = (_currentPage + 1) % slideCount;
+    await _pageController.animateToPage(
+      nextPage,
+      duration: _autoSlideAnimationDuration,
+      curve: Curves.easeInOutCubic,
+    );
+
+    if (mounted) {
+      _scheduleAutoSlide();
+    }
   }
 
   Future<void> _run(Future<void> Function() action) async {
@@ -437,112 +474,106 @@ class _SignInScreenState extends State<SignInScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFE6E6E6),
       body: SafeArea(
-        child: Stack(
-          children: [
-            Positioned(
-              top: 8,
-              right: 16,
-              child: _LanguageSwitcher(controller: widget.languageController),
-            ),
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 420),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 54,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 54,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Icon(
+                    Icons.radio_button_checked,
+                    size: 62,
+                    color: Colors.black,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Icon(
-                        Icons.radio_button_checked,
-                        size: 62,
-                        color: Colors.black,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'AVTAN',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: Colors.black,
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: 26),
-                      ..._buildAuthActions(strings),
-                      const SizedBox(height: 18),
-                      SizedBox(
-                        height: 240,
-                        child: PageView.builder(
-                          controller: _pageController,
-                          onPageChanged: (index) {
-                            setState(() => _currentPage = index);
-                          },
-                          itemCount: slides.length,
-                          itemBuilder: (context, index) {
-                            final slide = slides[index];
-                            return Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(slide.icon, size: 88, color: Colors.black),
-                                const SizedBox(height: 12),
-                                Text(
-                                  slide.title,
-                                  textAlign: TextAlign.center,
-                                  style: theme.textTheme.headlineSmall
-                                      ?.copyWith(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  slide.description,
-                                  textAlign: TextAlign.center,
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    color: Colors.black87,
-                                    height: 1.3,
-                                  ),
-                                ),
-                              ],
+                  const SizedBox(height: 6),
+                  Text(
+                    'AVTAN',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 26),
+                  ..._buildAuthActions(strings),
+                  const SizedBox(height: 18),
+                  SizedBox(
+                    height: 240,
+                    child: PageView.builder(
+                      controller: _pageController,
+                      onPageChanged: (index) {
+                        setState(() => _currentPage = index);
+                        _scheduleAutoSlide();
+                      },
+                      itemCount: slides.length,
+                      itemBuilder: (context, index) {
+                        final slide = slides[index];
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(slide.icon, size: 88, color: Colors.black),
+                            const SizedBox(height: 12),
+                            Text(
+                              slide.title,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              slide.description,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: Colors.black87,
+                                height: 1.3,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      slides.length,
+                      (index) => Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: GestureDetector(
+                          onTap: () {
+                            _scheduleAutoSlide();
+                            _pageController.animateToPage(
+                              index,
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeOut,
                             );
                           },
+                          child: _PagerDot(active: _currentPage == index),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          slides.length,
-                          (index) => Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: GestureDetector(
-                              onTap: () => _pageController.animateToPage(
-                                index,
-                                duration: const Duration(milliseconds: 250),
-                                curve: Curves.easeOut,
-                              ),
-                              child: _PagerDot(active: _currentPage == index),
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (_error != null) ...[
-                        const SizedBox(height: 12),
-                        Text(
-                          _error!,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: theme.colorScheme.error),
-                        ),
-                      ],
-                    ],
+                    ),
                   ),
-                ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      _error!,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: theme.colorScheme.error),
+                    ),
+                  ],
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -758,11 +789,6 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(strings.dashboardTitle),
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: _LanguageSwitcher(controller: languageController),
-          ),
-          const SizedBox(width: 8),
           TextButton(
             onPressed: () async {
               await subscriptionService.reset();
@@ -974,13 +1000,6 @@ class FirebaseSetupRequiredScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(strings.firebaseSetupTitle),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: _LanguageSwitcher(controller: languageController),
-          ),
-          const SizedBox(width: 12),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(24),
